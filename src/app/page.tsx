@@ -1,0 +1,403 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { motion, useScroll, useTransform, useSpring, useMotionValue, useMotionValueEvent, useAnimationFrame } from 'framer-motion';
+import { SECTIONS } from '@/utils/assets';
+import Lenis from 'lenis';
+import { MoveRight } from 'lucide-react';
+import Hyperspace from '@/components/Hyperspace';
+import CipherReveal from '@/components/CipherReveal';
+
+export default function Home() {
+  const containerRef = useRef(null);
+  const [activeSection, setActiveSection] = useState(0);
+
+  // Custom Cursor Logic
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
+
+  useEffect(() => {
+    const moveCursor = (e: MouseEvent) => {
+      cursorX.set(e.clientX - 10);
+      cursorY.set(e.clientY - 10);
+    };
+    window.addEventListener('mousemove', moveCursor);
+    return () => window.removeEventListener('mousemove', moveCursor);
+  }, []);
+
+  // Smooth Scroll Init
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.5,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+    return () => lenis.destroy();
+  }, []);
+
+  return (
+    <main ref={containerRef} className="bg-neutral-980 text-white min-h-[600vh] selection:bg-bugatti-light selection:text-black transition-all duration-1000">
+
+      <motion.div
+        className="custom-cursor hidden md:block"
+        style={{ x: cursorX, y: cursorY }}
+      />
+
+      <div className={`transition-all duration-1000 ${activeSection === 8 ? 'blueprint-mode' : ''}`}>
+        {SECTIONS.map((section, index) => (
+          <SectionDispatcher
+            key={section.id}
+            section={section}
+            index={index}
+            setActive={setActiveSection}
+          />
+        ))}
+      </div>
+
+      <footer className="h-[80vh] bg-black flex flex-col items-center justify-center relative z-20 overflow-hidden border-t border-red-900/30">
+        {/* Red Glow Background */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_var(--tw-gradient-stops))] from-red-900/20 via-black to-black pointer-events-none" />
+
+        <div className="relative z-10 text-center">
+          <h1 className="text-[15vw] font-black italic tracking-tighter text-neutral-900 select-none leading-none opacity-50">BUGATTI</h1>
+
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-8 whitespace-nowrap mix-blend-screen">
+            <p className="text-red-500 font-mono tracking-[0.5em] text-sm md:text-base uppercase animate-pulse shadow-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]">
+              System Override // 0xFF
+            </p>
+
+            <div className="h-px w-32 bg-gradient-to-r from-transparent via-red-500 to-transparent" />
+
+            <a
+              href="https://github.com/anshtripathi6969"
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-col items-center gap-2 group cursor-none"
+            >
+              <span className="text-3xl md:text-5xl font-black italic uppercase text-white group-hover:text-red-500 transition-colors duration-300 drop-shadow-2xl">
+                BUILT BY <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-600">ANSH TRIPATHI</span>
+              </span>
+              <span className="text-neutral-500 text-xs font-mono tracking-widest opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-500">
+                github.com/anshtripathi6969
+              </span>
+            </a>
+          </div>
+        </div>
+      </footer>
+
+    </main>
+  );
+}
+
+function SectionDispatcher({ section, index, setActive }: { section: any, index: number, setActive: (i: number) => void }) {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (typeof v === 'number' && v > 0.2 && v < 0.8) setActive(index);
+  });
+
+  const content = (() => {
+    switch (section.layout) {
+      case 'hero': return <HeroSection section={section} />;
+      case 'horizontal': return <HorizontalSection section={section} />;
+      case 'xray': return <XRaySection section={section} />;
+      case 'cline': return <CLineSection section={section} />;
+      case 'telemetry': return <TelemetrySection section={section} />;
+      case 'split': return <SplitSection section={section} />;
+      default: return <ParallaxSection section={section} layout={section.layout} />;
+    }
+  })();
+
+  return <div ref={ref} className="w-full relative">{content}</div>;
+}
+
+// --- NEW SECTIONS ---
+
+function XRaySection({ section }: { section: any }) {
+  const [sliderPos, setSliderPos] = useState(50);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    setSliderPos(x);
+  }
+
+  return (
+    <section className="h-screen flex flex-col items-center justify-center relative bg-neutral-900 overflow-hidden cursor-crosshair"
+      ref={containerRef} onMouseMove={handleMouseMove}>
+
+      <div className="absolute top-10 text-center z-20 mix-blend-difference">
+        <h2 className="text-6xl font-black italic uppercase">{section.title}</h2>
+        <p className="opacity-70 mt-4 tracking-widest uppercase text-sm">Drag to Reveal</p>
+      </div>
+
+      <div className="relative w-[90vw] h-[60vh]">
+        {/* Bottom Layer: Carbon */}
+        <img src={section.image2} className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+
+        {/* Top Layer: Paint (Masked) */}
+        <div className="absolute inset-0 w-full h-full" style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}>
+          <img src={section.image} className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+        </div>
+
+        {/* Slider Line */}
+        <div className="absolute top-0 bottom-0 w-[2px] bg-bugatti-light/50 shadow-[0_0_20px_#22d3ee] pointer-events-none" style={{ left: `${sliderPos}%` }}>
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center bg-black/50 backdrop-blur-md">
+            <MoveRight className="w-4 h-4 text-white" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CLineSection({ section }: { section: any }) {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const pathLength = useSpring(useTransform(scrollYProgress, [0.2, 0.8], [0, 1]), { stiffness: 40, damping: 20 });
+
+  return (
+    <section ref={ref} className="h-screen bg-neutral-950 flex items-center justify-center relative overflow-hidden">
+
+      <div className="absolute inset-0 opacity-20">
+        <img src="/blueprint.png" className="w-full h-full object-cover grayscale invert" />
+      </div>
+
+      <div className="relative z-10 w-[60vh] h-[80vh]">
+        <svg viewBox="0 0 100 200" className="w-full h-full drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+          <motion.path
+            d="M 80 10 C 20 10, 10 50, 10 100 C 10 150, 20 190, 80 190"
+            fill="transparent"
+            stroke="#22D3EE"
+            strokeWidth="2"
+            strokeLinecap="round"
+            style={{ pathLength }}
+          />
+        </svg>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+          <h2 className="text-8xl font-black italic text-stroke">THE C-LINE</h2>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function TelemetrySection({ section }: { section: any }) {
+  const [speed, setSpeed] = useState(0);
+  const [rpm, setRpm] = useState(0);
+  const [gear, setGear] = useState(1);
+  const ref = useRef(null);
+  const isInView = useTransform(useScroll({ target: ref }).scrollYProgress, [0, 1], [0, 1]);
+
+  useAnimationFrame((t) => {
+    // Simulate speed ramping up 0-420
+    const ramp = (Math.sin(t / 2000) + 1) / 2; // 0 to 1
+    setSpeed(Math.floor(ramp * 440));
+
+    // Simulate RPM 1000-8000
+    const rpmVal = (ramp * 8000) % 8000;
+    setRpm(Math.floor(rpmVal < 1000 ? 1000 : rpmVal));
+
+    // Simulate Gear
+    setGear(Math.min(7, Math.floor((ramp * 440) / 60) + 1));
+  });
+
+  return (
+    <section ref={ref} className="h-screen bg-black flex flex-col items-center justify-center relative border-y border-white/10">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bugatti-dark/30 to-black pointer-events-none" />
+
+      <div className="grid grid-cols-3 gap-12 text-center z-10 w-full max-w-6xl px-12">
+
+        <div className="flex flex-col items-center justify-center border border-white/10 p-12 bg-black/50 backdrop-blur-md">
+          <span className="text-bugatti-light tracking-[0.5em] text-xs font-bold mb-4 uppercase">Engine RPM</span>
+          <div className="text-7xl font-mono font-bold text-white tabular-nums">
+            {rpm}
+          </div>
+          <div className="w-full h-1 bg-neutral-800 mt-4 rounded-full overflow-hidden">
+            <div className="h-full bg-red-500" style={{ width: `${(rpm / 8000) * 100}%` }} />
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center border-x border-bugatti-light/30 p-12 relative">
+          <span className="text-white tracking-[0.5em] text-xs font-bold mb-4 uppercase animate-pulse">Velocity</span>
+          <div className="text-9xl font-black italic text-bugatti-light tabular-nums drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+            {speed}
+          </div>
+          <span className="text-xl font-bold text-neutral-500">KM/H</span>
+        </div>
+
+        <div className="flex flex-col items-center justify-center border border-white/10 p-12 bg-black/50 backdrop-blur-md">
+          <span className="text-bugatti-light tracking-[0.5em] text-xs font-bold mb-4 uppercase">Transmission</span>
+          <div className="text-8xl font-black text-white tabular-nums">
+            {gear}
+          </div>
+          <span className="text-sm text-neutral-500 mt-2 uppercase">Dual Clutch</span>
+        </div>
+
+      </div>
+    </section>
+  )
+}
+
+// --- EXISTING SECTIONS (Simplified reuse) ---
+
+function HeroSection({ section }: { section: any }) {
+  return (
+    <section className="h-screen w-full relative flex flex-col items-center justify-center overflow-hidden bg-black">
+      {/* Background Layer - Full Color & Visibility */}
+      <motion.div
+        className="absolute inset-0 z-0"
+        initial={{ scale: 1.1, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 3, ease: "easeOut" }}
+      >
+        <img src={section.image} className="w-full h-full object-cover brightness-[0.8]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20" />
+      </motion.div>
+
+      {/* Main Content Container */}
+      <div className="relative z-10 w-full max-w-[90vw] h-full flex flex-col justify-between py-12 md:py-20 pointer-events-none">
+
+        {/* Top Bar: Technical Data */}
+        <div className="flex justify-between items-start text-[10px] md:text-xs font-mono tracking-widest text-white/70 uppercase mix-blend-difference">
+          <div className="flex flex-col gap-1">
+            <span>Sys.Online</span>
+            <span>Molsheim, France</span>
+            <span>48.52° N, 7.49° E</span>
+          </div>
+          <div className="flex flex-col gap-1 text-right">
+            <span>Chassis: Carbon-K</span>
+            <span>Engine: W16-8.0</span>
+            <span className="text-bugatti-light animate-pulse">Status: Ready</span>
+          </div>
+        </div>
+
+        {/* Center: Massive Glowing Logo with Blend Mode */}
+        <div className="flex flex-col items-center justify-center -mt-10">
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.9, filter: "blur(20px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            transition={{ duration: 1.5, ease: "circOut" }}
+            className="text-[18vw] font-black italic tracking-tighter leading-none select-none text-white drop-shadow-[0_0_50px_rgba(34,211,238,0.8)] pr-14"
+          >
+            <CipherReveal text="BUGATTI" />
+          </motion.h1>
+
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: "100%", opacity: 1 }}
+            transition={{ delay: 1, duration: 1.5 }}
+            className="w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-white/50 to-transparent mt-4 mb-8 mix-blend-overlay"
+          />
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 1 }}
+            className="text-white font-mono tracking-[0.8em] text-xs md:text-sm uppercase mix-blend-difference"
+          >
+            Automobiles Ettore Bugatti
+          </motion.p>
+        </div>
+
+        {/* Bottom Bar: Manifesto */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end border-t border-white/20 pt-8 mix-blend-difference text-white">
+          <div className="hidden md:block">
+            <p className="text-xs leading-relaxed max-w-xs text-justify opacity-80">
+              "If comparable, it is no longer Bugatti." <br />
+              The pursuit of perfection is not a goal, but a requirement.
+              Engineering art since 1909.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center justify-end h-full">
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="flex flex-col items-center gap-2"
+            >
+              <span className="text-[10px] tracking-[0.3em] uppercase opacity-50">Initialize_Scroll</span>
+              <div className="w-px h-12 bg-white" />
+            </motion.div>
+          </div>
+
+          <div className="hidden md:flex justify-end items-end gap-8">
+            <div>
+              <span className="block text-4xl font-black italic opacity-50">1500</span>
+              <span className="text-[10px] uppercase tracking-widest opacity-80">Horsepower</span>
+            </div>
+            <div>
+              <span className="block text-4xl font-black italic opacity-50">420</span>
+              <span className="text-[10px] uppercase tracking-widest opacity-80">KM/H</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HorizontalSection({ section }: { section: any }) {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref });
+  const xSpring = useSpring(useTransform(scrollYProgress, [0, 1], ["0%", "-50%"]), { stiffness: 100, damping: 30 });
+
+  return (
+    <section ref={ref} className="h-[200vh] relative z-20">
+      <div className="sticky top-0 h-screen overflow-hidden flex items-center bg-neutral-900">
+        <Hyperspace />
+        <motion.div style={{ x: xSpring }} className="flex items-center gap-20 pl-[10vw] relative z-10">
+          <h2 className="text-[20vw] font-black italic whitespace-nowrap leading-none text-stroke">{section.title}</h2>
+          <div className="min-w-[50vw] h-[60vh] relative overflow-hidden skew-x-12 border-4 border-bugatti-light/20">
+            <img src={section.image} className="w-full h-full object-cover scale-125" />
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function ParallaxSection({ section, layout }: { section: any, layout: string }) {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  return (
+    <section ref={ref} className={`min-h-screen relative flex items-center justify-center py-40 overflow-hidden ${layout === 'blueprint' ? 'bg-white text-black' : ''}`}>
+      <motion.div style={{ y: useTransform(scrollYProgress, [0, 1], ["-20%", "20%"]) }} className="absolute inset-0 z-0">
+        <img src={section.image} className={`w-full h-full object-cover ${layout === 'blueprint' ? '' : 'brightness-[0.5]'}`} />
+      </motion.div>
+      <div className="relative z-10 max-w-7xl mx-auto px-8 grid gap-20 items-center">
+        <div>
+          <h3 className="text-8xl font-black italic uppercase leading-[0.85] mb-8">{section.title}</h3>
+          <p className="text-xl font-light leading-relaxed max-w-lg mb-12">{section.description}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SplitSection({ section }: { section: any }) {
+  return (
+    <section className="h-screen flex relative z-30 bg-black">
+      <div className="w-1/2 h-full relative overflow-hidden border-r border-white/10 group">
+        <img src={section.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 filter hue-rotate-180" />
+      </div>
+      <div className="w-1/2 h-full relative overflow-hidden group">
+        <img src={section.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+      </div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black px-8 py-4 border border-white/20">
+        <span className="font-mono text-xs tracking-[0.5em] uppercase">VS</span>
+      </div>
+    </section>
+  )
+}
