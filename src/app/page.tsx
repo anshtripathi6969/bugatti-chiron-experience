@@ -9,6 +9,7 @@ import Hyperspace from '@/components/Hyperspace';
 import HeroSection from '@/components/sections/HeroSection';
 import HorizontalSection from '@/components/sections/HorizontalSection';
 import XRaySection from '@/components/sections/XRaySection';
+import CLineSection from '@/components/sections/CLineSection';
 
 export default function Home() {
   const containerRef = useRef(null);
