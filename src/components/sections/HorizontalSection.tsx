@@ -1,10 +1,10 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Hyperspace from '@/components/Hyperspace';
 
-export default function HorizontalSection({ section }: { section: any }) {
+const HorizontalSection = memo(function HorizontalSection({ section }: { section: any }) {
     const ref = useRef(null);
     const { scrollYProgress } = useScroll({ target: ref });
     const xSpring = useSpring(useTransform(scrollYProgress, [0, 1], ["0%", "-50%"]), { stiffness: 100, damping: 30 });
@@ -22,4 +22,6 @@ export default function HorizontalSection({ section }: { section: any }) {
             </div>
         </section>
     );
-}
+});
+
+export default HorizontalSection;
