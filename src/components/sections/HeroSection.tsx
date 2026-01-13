@@ -1,9 +1,10 @@
 'use client';
 
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import CipherReveal from '@/components/CipherReveal';
 
-export default function HeroSection({ section }: { section: any }) {
+const HeroSection = memo(function HeroSection({ section }: { section: any }) {
     return (
         <section className="h-screen w-full relative flex flex-col items-center justify-center overflow-hidden bg-black">
             {/* Background Layer - Full Color & Visibility */}
@@ -97,4 +98,6 @@ export default function HeroSection({ section }: { section: any }) {
             </div>
         </section>
     );
-}
+});
+
+export default HeroSection;
