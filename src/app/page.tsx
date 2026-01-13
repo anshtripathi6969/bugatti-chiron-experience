@@ -18,41 +18,7 @@ export default function Home() {
   const containerRef = useRef(null);
   const [activeSection, setActiveSection] = useState(0);
 
-  // Custom Cursor Logic
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
-
-  useEffect(() => {
-    const moveCursor = (e: MouseEvent) => {
-      cursorX.set(e.clientX - 10);
-      cursorY.set(e.clientY - 10);
-    };
-    window.addEventListener('mousemove', moveCursor);
-    return () => window.removeEventListener('mousemove', moveCursor);
-  }, []);
-
-  // Smooth Scroll Init
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.5,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-    });
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-    return () => lenis.destroy();
-  }, []);
-
-  return (
-    <main ref={containerRef} className="bg-neutral-980 text-white min-h-[600vh] selection:bg-bugatti-light selection:text-black transition-all duration-1000">
-
-      <motion.div
-        className="custom-cursor hidden md:block"
-        style={{ x: cursorX, y: cursorY }}
-      />
+      <CustomCursor />
 
       <div className={`transition-all duration-1000 ${activeSection === 8 ? 'blueprint-mode' : ''}`}>
         {SECTIONS.map((section, index) => (
@@ -96,7 +62,7 @@ export default function Home() {
         </div>
       </footer>
 
-    </main>
+    </main >
   );
 }
 
