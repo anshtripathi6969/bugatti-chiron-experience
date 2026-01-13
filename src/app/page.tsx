@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionValue, useMotionValueEvent, useAnimationFrame } from 'framer-motion';
+import { motion, useScroll, useMotionValue, useMotionValueEvent } from 'framer-motion';
 import { SECTIONS } from '@/utils/assets';
 import Lenis from 'lenis';
 import { MoveRight } from 'lucide-react';
