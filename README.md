@@ -1,6 +1,12 @@
 # 🏎️ BUGATTI CHIRON: THE GOD-TIER EXPERIENCE
 
 > *"If comparable, it is no longer Bugatti."* — Ettore Bugatti
+<img width="1899" height="1079" alt="image" src="https://github.com/user-attachments/assets/a57ad5f2-8f29-44c6-bec7-84c7ee389e87" />
+<img width="1890" height="1044" alt="image" src="https://github.com/user-attachments/assets/fc84861c-281c-45dd-be0c-f3bc5f6121da" />
+<img width="1846" height="937" alt="image" src="https://github.com/user-attachments/assets/c172c930-0ea1-4d56-a1c3-e28c533dbe36" />
+
+
+
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
